@@ -39,31 +39,36 @@ async function generateImages(input) {
         const randomNumber = getRandomNumber(1, 10000);
         const prompt = `${input} ${randomNumber}`;
         // We added random number to prompt to create different results
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/prompthero/openjourney",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`,
-                },
-                body: JSON.stringify({ inputs: prompt }),
+        try {
+            const response = await fetch(
+                "https://api-inference.huggingface.co/models/prompthero/openjourney",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`,
+                    },
+                    body: JSON.stringify({ inputs: prompt }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        );
 
-        if (!response.ok) {
-            alert("Failed to generate image!");
+            const blob = await response.blob();
+            const imgUrl = URL.createObjectURL(blob);
+            imageUrls.push(imgUrl);
+
+            const img = document.createElement("img");
+            img.src = imgUrl;
+            img.alt = `art-${i + 1}`;
+            img.onclick = () => downloadImage(imgUrl, i);
+            document.getElementById("image-grid").appendChild(img);
+        } catch (error) {
+            alert(`Failed to generate image! Error: ${error.message}`);
+            console.error("Error generating image:", error);
         }
-
-        const blob = await response.blob();
-        const imgUrl = URL.createObjectURL(blob);
-        imageUrls.push(imgUrl);
-
-        const img = document.createElement("img");
-        img.src = imgUrl;
-        img.alt = `art-${i + 1}`;
-        img.onclick = () => downloadImage(imgUrl, i);
-        document.getElementById("image-grid").appendChild(img);
     }
 
     loading.style.display = "none";
