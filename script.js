@@ -1,30 +1,30 @@
 const apiKey = "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";
-const maxImages = 4; // Number of images to generate for each prompt
-const maxRetries = 3; // Number of retries for failed requests
+const maxImages = 4; // Número de imágenes a generar para cada prompt
+const maxRetries = 3; // Número de reintentos en caso de fallar la solicitud
 let selectedImageNumber = null;
 
-// Function to generate a random number between min and max (inclusive)
+// Función para generar un número aleatorio entre min y max (inclusive)
 function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Function to disable the generate button during processing
+// Función para deshabilitar el botón de generar durante el procesamiento
 function disableGenerateButton() {
     document.getElementById("generate").disabled = true;
 }
 
-// Function to enable the generate button after process
+// Función para habilitar el botón de generar después del procesamiento
 function enableGenerateButton() {
     document.getElementById("generate").disabled = false;
 }
 
-// Function to clear image grid
+// Función para limpiar la cuadrícula de imágenes
 function clearImageGrid() {
     const imageGrid = document.getElementById("image-grid");
     imageGrid.innerHTML = "";
 }
 
-// Function to generate images
+// Función para generar imágenes
 async function generateImages(input) {
     disableGenerateButton();
     clearImageGrid();
@@ -35,7 +35,6 @@ async function generateImages(input) {
     const imageUrls = [];
 
     for (let i = 0; i < maxImages; i++) {
-        // Generate a random number between 1 and 10000 and append it to the prompt
         const randomNumber = getRandomNumber(1, 10000);
         const prompt = `${input} ${randomNumber}`;
 
@@ -57,7 +56,7 @@ async function generateImages(input) {
                 );
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    throw new Error(`Error HTTP! Estado: ${response.status}`);
                 }
 
                 const blob = await response.blob();
@@ -70,14 +69,14 @@ async function generateImages(input) {
                 img.onclick = () => downloadImage(imgUrl, i);
                 document.getElementById("image-grid").appendChild(img);
 
-                success = true; // If successful, exit the loop
+                success = true; // Si tiene éxito, salir del bucle
             } catch (error) {
                 retries++;
                 if (retries >= maxRetries) {
-                    alert(`Failed to generate image! Error: ${error.message}`);
-                    console.error("Error generating image:", error);
+                    alert(`¡Falló la generación de la imagen! Error: ${error.message}`);
+                    console.error("Error generando la imagen:", error);
                 } else {
-                    console.log(`Retrying... (${retries}/${maxRetries})`);
+                    console.log(`Reintentando... (${retries}/${maxRetries})`);
                 }
             }
         }
@@ -85,18 +84,23 @@ async function generateImages(input) {
 
     loading.style.display = "none";
     enableGenerateButton();
-    selectedImageNumber = null; // Reset selected image number
+    selectedImageNumber = null; // Reiniciar el número de imagen seleccionada
 }
 
+// Evento para el botón de generar imágenes
 document.getElementById("generate").addEventListener('click', () => {
     const input = document.getElementById("user-prompt").value;
-    generateImages(input);
+    if (input.trim() === "") {
+        alert("Por favor, introduce un prompt válido.");
+    } else {
+        generateImages(input);
+    }
 });
 
+// Función para descargar la imagen
 function downloadImage(imgUrl, imageNumber) {
     const link = document.createElement("a");
     link.href = imgUrl;
-    // Set filename based on the selected image
     link.download = `image-${imageNumber + 1}.jpg`;
     link.click();
 }
